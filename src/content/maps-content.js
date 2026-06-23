@@ -567,6 +567,16 @@
         })();
         return true;
 
+      case 'GET_LEADS_BY_SESSION':
+        (async () => {
+          try {
+            if (!storage) { storage = new LeadStorage(); await storage.init(); }
+            const leads = await storage.getLeads({ session_id: msg.sessionId });
+            sendResponse({ ok: true, leads });
+          } catch (err) { sendResponse({ ok: false, error: err.message }); }
+        })();
+        return true;
+
       case 'DELETE_LEAD':
         (async () => {
           try {

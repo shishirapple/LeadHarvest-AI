@@ -96,6 +96,10 @@
     }
   });
 
+  $('#btnOpenQueue').addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('src/queue/queue-manager.html') });
+  });
+
   async function init() {
     await loadSettings();
     await refreshQuota();

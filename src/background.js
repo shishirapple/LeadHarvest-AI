@@ -212,6 +212,20 @@ async function handleMessage(msg, sender) {
       return { ok: true, history: sessionHistory || [] };
     }
 
+    case 'GET_LEADS_BY_SESSION': {
+      if (!msg.sessionId) return { ok: false, error: 'Session ID required' };
+      try {
+        const tabs = await chrome.tabs.query({ url: ['*://www.google.com/maps/*', '*://maps.google.com/*'] });
+        if (tabs.length === 0) return { ok: false, error: 'No Maps tab found' };
+        const result = await new Promise((resolve) => {
+          chrome.tabs.sendMessage(tabs[0].id, { type: 'GET_LEADS_BY_SESSION', sessionId: msg.sessionId }, resolve);
+        });
+        return result || { ok: false, error: 'No response from content script' };
+      } catch (err) {
+        return { ok: false, error: err.message };
+      }
+    }
+
     case 'GET_STATS': {
       const { leadCount } = await chrome.storage.local.get('leadCount');
       const quota = await getQuota();
