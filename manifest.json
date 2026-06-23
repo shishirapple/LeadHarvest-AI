@@ -39,6 +39,9 @@
     }
   },
   "options_page": "src/options/options.html",
+  "chrome_url_overrides": {
+    "newtab": "src/queue/queue-manager.html"
+  },
   "icons": {
     "128": "icons/icon128.png"
   },
