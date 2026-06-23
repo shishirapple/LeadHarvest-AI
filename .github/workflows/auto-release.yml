@@ -1,0 +1,120 @@
+name: Auto Release on Version Update
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'manifest.json'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  detect-version-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from manifest.json
+        id: get_version
+        run: |
+          VERSION=$(grep -o '"version": "[^"]*"' manifest.json | cut -d'"' -f4)
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: v$VERSION"
+
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.get_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.get_version.outputs.version }} already exists"
+          else
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.get_version.outputs.version }} does not exist, will create"
+          fi
+
+      - name: Create tag if not exists
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.get_version.outputs.version }}" -m "Release ${{ steps.get_version.outputs.version }}"
+          git push origin "${{ steps.get_version.outputs.version }}"
+
+      - name: Generate release notes
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        id: release_notes
+        run: |
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREV_TAG" ]; then
+            echo "Initial release"
+            NOTES="## 🎉 Initial Release
+  
+  This is the first automated release of LeadHarvest AI.
+  
+  ### Features:
+  - Professional Queue System for bulk lead generation
+  - Sequential task processing
+  - Smart export (CSV for single tasks, Excel for bulk)
+  - Crash recovery and auto-resume
+  - Scheduling support
+  - Real-time progress tracking"
+          else
+            echo "Comparing with $PREV_TAG"
+            NOTES="## 🚀 What's Changed
+  
+  $(git log --pretty=format:'- %s (%h)' $PREV_TAG..HEAD)"
+          fi
+          
+          # Save to file
+          echo "$NOTES" > release_notes.md
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: "LeadHarvest AI ${{ steps.get_version.outputs.version }}"
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare extension zip
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          zip -r leadharvest-ai-${{ steps.get_version.outputs.version }}.zip \
+            manifest.json \
+            src/ \
+            icons/ \
+            README.md \
+            .gitignore
+          ls -lh leadharvest-ai-*.zip
+
+      - name: Upload extension to release
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          files: leadharvest-ai-${{ steps.get_version.outputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release already exists notification
+        if: steps.check_tag.outputs.tag_exists == 'true'
+        run: |
+          echo "⚠️ Release ${{ steps.get_version.outputs.version }} already exists!"
+          echo "To create a new release, please update the version in manifest.json"
+          echo "Current version in manifest.json: $(grep -o '"version": "[^"]*"' manifest.json | cut -d'"' -f4)"
