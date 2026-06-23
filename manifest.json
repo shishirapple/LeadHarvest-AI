@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LeadHarvest AI",
-  "version": "4.0.0",
+  "version": "5.0.1",
   "description": "Intelligent lead extractor for Google Maps — detail-panel scraping, website email discovery, Google Ads detection, CMS/platform fingerprinting, and local-first storage. No external accounts required.",
   "permissions": [
     "storage",
