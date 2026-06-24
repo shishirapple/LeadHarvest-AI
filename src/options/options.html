@@ -1,154 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LeadHarvest AI - Settings</title>
-  <style>
-    :root {
-      --primary-color: #2563eb;
-      --primary-hover: #1d4ed8;
-      --success-color: #10b981;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-300: #d1d5db;
-      --gray-600: #4b5563;
-      --gray-700: #374151;
-      --gray-800: #1f2937;
-      --radius: 8px;
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
+<meta charset="UTF-8" />
+<title>LeadHarvest AI — Settings</title>
+<style>
+  :root {
+    --bg: #0a0f0c; --bg-elevated: #0f1611; --card: #121a15; --border: #1d2a21;
+    --green: #22c55e; --green-bright: #4ade80; --green-dim: rgba(34,197,94,0.12);
+    --green-dim-border: rgba(34,197,94,0.35);
+    --text: #e7efe9; --text-dim: #8a978c; --text-faint: #5b6b5d; --red: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    max-width: 740px; margin: 0 auto; padding: 32px 24px;
+  }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 { font-size: 22px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--green), #15803d);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; color: #06120a;
+  }
+  .page-header p { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  .card { background: var(--bg-elevated); padding: 22px; border-radius: 14px; margin-bottom: 14px; border: 1px solid var(--border); }
+  .card h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: #fff; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 40px 20px;
-    }
+  label.field-label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint); margin-bottom: 6px; font-weight: 700; }
+  .field-group { margin-bottom: 16px; }
+  input[type="number"], select {
+    width: 100%; padding: 10px 14px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 13px;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--green); }
+  .hint { font-size: 11.5px; color: var(--text-faint); margin-top: 5px; line-height: 1.5; }
 
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
+  .btn { padding: 10px 18px; border-radius: 9px; border: none; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: linear-gradient(135deg, var(--green), #16a34a); color: #06120a; }
+  .btn-primary:hover { box-shadow: 0 4px 14px rgba(34,197,94,0.35); }
+  .btn-secondary { background: var(--card); color: var(--text-dim); border: 1px solid var(--border); }
+  .btn-secondary:hover { color: var(--text); border-color: #2a3a30; }
+  .btn-danger { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
-    .panel {
-      background: white;
-      border-radius: var(--radius);
-      padding: 32px;
-      box-shadow: var(--shadow-lg);
-    }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--bg); }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-info h3 { font-size: 13px; font-weight: 700; color: var(--text); }
+  .toggle-info p { font-size: 11px; color: var(--text-faint); margin-top: 2px; line-height: 1.4; }
+  .toggle-switch { position: relative; width: 42px; height: 23px; cursor: pointer; flex-shrink: 0; margin-left: 16px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 12px; transition: 0.25s; }
+  .toggle-slider::before { content: ''; position: absolute; width: 17px; height: 17px; left: 3px; bottom: 3px; background: var(--text-faint); border-radius: 50%; transition: 0.25s; }
+  .toggle-switch input:checked + .toggle-slider { background: var(--green-dim); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(19px); background: var(--green); }
 
-    h1 {
-      font-size: 24px;
-      color: var(--gray-800);
-      margin-bottom: 8px;
-    }
+  .status-box { padding: 11px 15px; border-radius: 9px; font-size: 12.5px; margin-top: 12px; display: flex; align-items: center; gap: 8px; }
+  .status-box.success { background: var(--green-dim); border: 1px solid var(--green-dim-border); color: var(--green-bright); }
+  .status-box.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--red); }
+  .status-box.info { background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.3); color: #60a5fa; }
 
-    p {
-      color: var(--gray-600);
-      margin-bottom: 24px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--gray-700);
-      margin-bottom: 8px;
-    }
-
-    input[type="number"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--gray-300);
-      border-radius: var(--radius);
-      font-size: 14px;
-    }
-
-    input[type="number"]:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 500;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: var(--primary-color);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-hover);
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--success-color);
-      color: white;
-      padding: 12px 20px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-  </style>
+  .quota-display { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--card); border-radius: 10px; border: 1px solid var(--border); }
+  .quota-number { font-size: 26px; font-weight: 800; color: var(--green-bright); }
+  .quota-number span { font-size: 13px; color: var(--text-faint); font-weight: 400; }
+  .quota-bar { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .quota-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--green-bright)); border-radius: 4px; transition: width 0.4s ease; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="panel">
-      <h1>⚙️ Settings</h1>
-      <p>Configure LeadHarvest AI behavior</p>
 
-      <form id="settingsForm">
-        <div class="form-group">
-          <label for="delayBetweenLeads">Delay Between Leads (ms)</label>
-          <input type="number" id="delayBetweenLeads" value="2000" min="500" max="10000" step="100">
-          <small style="color: var(--gray-600); display: block; margin-top: 4px;">Time to wait between extracting each lead</small>
-        </div>
+  <div class="page-header">
+    <h1><span class="logo">LH</span> LeadHarvest AI — Settings</h1>
+    <p>Self-contained extraction engine — no external accounts required</p>
+  </div>
 
-        <div class="form-group">
-          <label for="delayBetweenTasks">Delay Between Tasks (ms)</label>
-          <input type="number" id="delayBetweenTasks" value="3000" min="1000" max="30000" step="500">
-          <small style="color: var(--gray-600); display: block; margin-top: 4px;">Time to wait before starting the next task</small>
-        </div>
+  <div class="card">
+    <h2>&#9889; Extraction Settings</h2>
 
-        <button type="submit" class="btn btn-primary">Save Settings</button>
-      </form>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <h3>Email Discovery from Website</h3>
+        <p>For each business with a website, visit it and scan the homepage + contact/about pages for an email address. Also fingerprints the CMS/platform (WordPress, Wix, Shopify, etc).</p>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="extractEmailsFromWebsite" checked /><span class="toggle-slider"></span></label>
     </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <h3>Rate Limiting</h3>
+        <p>Add human-paced delays between extractions to avoid detection</p>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="rateLimitEnabled" checked /><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <h3>Auto-Scroll</h3>
+        <p>Automatically scroll the results panel to load more businesses</p>
+      </div>
+      <label class="toggle-switch"><input type="checkbox" id="autoScroll" checked /><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="field-group" style="margin-top:16px;">
+      <label class="field-label">Custom Delay (ms)</label>
+      <input type="number" id="customDelay" placeholder="0 = auto" min="0" max="30000" value="0" />
+      <div class="hint">Override the default random delay. 0 means automatic human-paced delay (1.5–3.5 seconds)</div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Default Export Format</label>
+      <select id="exportFormat">
+        <option value="csv">CSV (Comma-separated)</option>
+        <option value="xls">Excel (.xls — TSV format)</option>
+      </select>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btnSaveSettings">&#128190; Save Settings</button>
+      <button class="btn btn-secondary" id="btnResetDefaults">Reset Defaults</button>
+    </div>
+    <div id="settingsStatus"></div>
+  </div>
+
+  <div class="card">
+    <h2>&#128200; Daily Quota</h2>
+    <div class="quota-display">
+      <div class="quota-number" id="quotaCount">0 <span>/ 500</span></div>
+      <div class="quota-bar"><div class="quota-bar-fill" id="quotaBarFill" style="width:0%"></div></div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-faint);" id="quotaDate"></div>
+    <div class="btn-group"><button class="btn btn-danger" id="btnResetQuota">Reset Today's Quota</button></div>
+  </div>
+
+  <div class="card" style="border-color:rgba(239,68,68,0.2);">
+    <h2 style="color:#ef4444;">&#9888; Danger Zone</h2>
+    <div class="field-group">
+      <label class="field-label">Clear All Data</label>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px;">Permanently delete all captured leads and session history from local storage.</p>
+      <button class="btn btn-danger" id="btnClearAll">&#128465; Clear All Data</button>
+    </div>
+  </div>
+
+  <div class="card" style="border-color:rgba(59,130,246,0.3);">
+    <h2 style="color:#3b82f6;">&#128203; Queue Manager</h2>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">
+      Open the professional Queue Manager to create bulk scraping campaigns, schedule tasks, 
+      and manage your lead-generation pipeline with advanced features like auto-recovery and priority-based processing.
+    </p>
+    <button class="btn btn-primary" id="btnOpenQueue">&#128640; Open Queue Manager</button>
   </div>
 
   <script src="options.js"></script>
