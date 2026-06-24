@@ -138,6 +138,7 @@ async function handleMessage(msg, sender) {
         rateLimitEnabled: settings.rateLimitEnabled,
         autoScroll: settings.autoScroll,
         limit: effectiveLimit,
+        taskId: msg.taskId || null, // Pass task ID for queue manager integration
       };
 
       try {
