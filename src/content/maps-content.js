@@ -362,6 +362,13 @@
 
         try {
           chrome.runtime.sendMessage({ type: 'RECORD_CAPTURED', record: { ...record, id: result.lead?.id } });
+          // Send progress update to queue manager
+          chrome.runtime.sendMessage({ 
+            type: 'QUEUE_TASK_UPDATE', 
+            taskId: currentSettings.taskId,
+            collectedLeads: captured,
+            status: running ? 'running' : 'paused'
+          }).catch(() => {});
         } catch (e) {}
       }
       return true;

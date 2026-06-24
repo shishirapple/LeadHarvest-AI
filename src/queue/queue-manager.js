@@ -447,13 +447,13 @@
           ${task.errorMessage ? `<div style="font-size:11px;color:var(--red);margin-bottom:8px;">⚠️ ${escapeHtml(task.errorMessage)}</div>` : ''}
           <div class="task-actions">
             ${task.status === 'pending' ? `
-              <button class="btn btn-sm btn-danger" onclick="window.queueManager.removeTask('${task.id}')">&#10005; Remove</button>
+              <button class="btn btn-sm btn-danger" data-action="remove" data-task-id="${task.id}">&#10005; Remove</button>
             ` : ''}
             ${task.status === 'completed' ? `
-              <button class="btn btn-sm btn-secondary" onclick="window.queueManager.exportTask('${task.id}')">&#128190; Export</button>
+              <button class="btn btn-sm btn-secondary" data-action="export" data-task-id="${task.id}">&#128190; Export</button>
             ` : ''}
             ${task.status === 'failed' ? `
-              <button class="btn btn-sm btn-secondary" onclick="window.queueManager.retryTask('${task.id}')">&#128260; Retry</button>
+              <button class="btn btn-sm btn-secondary" data-action="retry" data-task-id="${task.id}">&#128260; Retry</button>
             ` : ''}
           </div>
         </div>`;
@@ -642,6 +642,25 @@
   els.btnClearCompleted.addEventListener('click', clearCompleted);
   els.btnClearAll.addEventListener('click', clearAll);
 
+  // Event delegation for task list actions (remove, export, retry)
+  els.taskList.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    
+    const action = btn.getAttribute('data-action');
+    const taskId = btn.getAttribute('data-task-id');
+    
+    if (!taskId) return;
+    
+    if (action === 'remove') {
+      removeTask(taskId);
+    } else if (action === 'export') {
+      exportTask(taskId);
+    } else if (action === 'retry') {
+      retryTask(taskId);
+    }
+  });
+
   els.scheduleModeRadios.forEach(radio => {
     radio.addEventListener('change', () => {
       const isScheduled = radio.value === 'scheduled' && radio.checked;
@@ -726,23 +745,19 @@
     // Update estimated time periodically
     setInterval(updateEstimatedTime, 5000);
     
-    // Expose functions globally for inline onclick handlers
-    window.queueManager = {
-      removeTask,
-      exportTask,
-      retryTask: async (taskId) => {
-        const task = queueTasks.find(t => t.id === taskId);
-        if (task) {
-          task.status = 'pending';
-          task.errorMessage = null;
-          task.startedAt = null;
-          task.completedAt = null;
-          await saveQueue();
-          renderTaskList();
-          updateStats();
-          showToast('Task queued for retry', 'info');
-        }
-      },
+    // Define retryTask function (used by event delegation)
+    window.retryTask = async (taskId) => {
+      const task = queueTasks.find(t => t.id === taskId);
+      if (task) {
+        task.status = 'pending';
+        task.errorMessage = null;
+        task.startedAt = null;
+        task.completedAt = null;
+        await saveQueue();
+        renderTaskList();
+        updateStats();
+        showToast('Task queued for retry', 'info');
+      }
     };
   }
 
