@@ -2,54 +2,38 @@
   "manifest_version": 3,
   "name": "LeadHarvest AI",
   "version": "5.0.2",
-  "description": "Intelligent lead extractor for Google Maps — detail-panel scraping, website email discovery, Google Ads detection, CMS/platform fingerprinting, and local-first storage. No external accounts required.",
+  "description": "Automated lead generation from Google Maps with advanced queue management, scheduling, and bulk export capabilities.",
   "permissions": [
     "storage",
-    "scripting",
     "tabs",
-    "activeTab",
-    "downloads",
-    "alarms"
+    "scripting",
+    "downloads"
   ],
   "host_permissions": [
     "https://www.google.com/maps/*",
-    "https://maps.google.com/*",
-    "http://*/*",
-    "https://*/*"
+    "https://maps.google.com/*"
   ],
   "background": {
-    "service_worker": "src/background.js",
-    "type": "module"
+    "service_worker": "src/background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://www.google.com/maps/*",
-        "https://maps.google.com/*"
-      ],
-      "js": ["src/lib/storage.js", "src/content/maps-content.js"],
-      "run_at": "document_idle"
-    }
-  ],
   "action": {
-    "default_popup": "src/popup/popup.html",
-    "default_title": "LeadHarvest AI",
+    "default_popup": "src/queue/queue-manager.html",
     "default_icon": {
-      "16": "icons/icon128.png",
-      "48": "icons/icon128.png",
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
   },
-  "options_page": "src/options/options.html",
-  "chrome_url_overrides": {
-    "newtab": "src/queue/queue-manager.html"
-  },
   "icons": {
-    "16": "icons/icon128.png",
-    "48": "icons/icon128.png",
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+  "content_scripts": [
+    {
+      "matches": ["https://www.google.com/maps/*", "https://maps.google.com/*"],
+      "js": ["src/content/maps-content.js"],
+      "run_at": "document_end"
+    }
+  ]
 }
