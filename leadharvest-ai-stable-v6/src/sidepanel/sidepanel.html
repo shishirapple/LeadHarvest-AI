@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LeadHarvest AI</title>
+  <style>
+    /* ─── Reset & base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Boosted contrast palette — v6 */
+      --bg:        #080f0a;
+      --bg2:       #0e1a11;
+      --bg3:       #142018;
+      --border:    #253b2b;
+      --border-hi: #2e4d35;
+      --green:     #22c55e;
+      --green-dim: #16a34a;
+      --green-glow:#0f3d20;
+      --text:      #f0f7f2;      /* was e2ede5 — brighter */
+      --text-dim:  #9db8a5;      /* was 7a9080 — more readable */
+      --text-mute: #5d7a65;      /* was 4a5f50 */
+      --red:       #f87171;
+      --amber:     #fbbf24;
+      --blue:      #60a5fa;
+      --radius:    8px;
+      --font:      -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: var(--font);
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border-hi);
+      flex-shrink: 0;
+    }
+    .logo {
+      width: 22px; height: 22px;
+      background: var(--green);
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #000;
+      flex-shrink: 0;
+    }
+    .header-title { font-size: 13px; font-weight: 700; letter-spacing: 0.3px; flex: 1; color: var(--text); }
+    .header-badge {
+      font-size: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      color: var(--text-dim);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .btn-icon {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-dim); padding: 4px 6px; border-radius: 5px;
+      font-size: 15px; line-height: 1;
+      transition: color .15s, background .15s;
+    }
+    .btn-icon:hover { background: var(--bg3); color: var(--text); }
+
+    /* ─── Tabs ─── */
+    .tabs {
+      display: flex;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border-hi);
+      flex-shrink: 0;
+    }
+    .tab {
+      flex: 1; padding: 10px 4px;
+      font-size: 11px; font-weight: 700;
+      text-align: center; cursor: pointer;
+      color: var(--text-mute);
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+      user-select: none;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+    .tab:hover:not(.active) { color: var(--text-dim); }
+
+    /* ─── Panels ─── */
+    .panels { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+    .panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .panel.active { display: flex; }
+    .scroll-area { flex: 1; overflow-y: auto; padding: 12px; }
+    .scroll-area::-webkit-scrollbar { width: 4px; }
+    .scroll-area::-webkit-scrollbar-track { background: transparent; }
+    .scroll-area::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+    /* ─── Cards / sections ─── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 10px; font-weight: 800;
+      color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    /* ─── Form elements ─── */
+    label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 4px; font-weight: 600; }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 7px 10px;
+      font-size: 12px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color .15s;
+    }
+    input::placeholder { color: var(--text-mute); }
+    input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 2px rgba(34,197,94,.12); }
+    select option { background: var(--bg3); color: var(--text); }
+    .form-row { margin-bottom: 10px; }
+    .form-row-inline { display: flex; gap: 8px; }
+    .form-row-inline > * { flex: 1; }
+
+    /* ─── Field chip toggles — FIXED v6 ─── */
+    .fields-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    /* Using div.field-chip (not label) to avoid native checkbox double-toggle */
+    .field-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg3);
+      border: 1px solid var(--border-hi);
+      border-radius: 5px; padding: 6px 8px;
+      cursor: pointer; font-size: 11px; font-weight: 600;
+      color: var(--text-mute);
+      transition: border-color .15s, color .15s, background .15s;
+      user-select: none;
+    }
+    .field-chip:hover { border-color: var(--green-dim); color: var(--text-dim); }
+    .field-chip.on {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-glow);
+    }
+    .field-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border-hi); flex-shrink: 0;
+      transition: background .15s;
+    }
+    .field-chip.on .field-dot { background: var(--green); }
+
+    /* ─── Buttons ─── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 14px; border-radius: 6px;
+      font-size: 12px; font-weight: 700;
+      cursor: pointer; border: none;
+      transition: opacity .15s, transform .1s, background .15s;
+    }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn:not(:disabled):active { transform: scale(.97); }
+    .btn-primary { background: var(--green); color: #000; }
+    .btn-primary:not(:disabled):hover { background: #16a34a; }
+    .btn-danger  { background: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; }
+    .btn-danger:not(:disabled):hover { background: #991b1b; }
+    .btn-ghost   { background: var(--bg3); color: var(--text-dim); border: 1px solid var(--border-hi); }
+    .btn-ghost:not(:disabled):hover { color: var(--text); border-color: var(--text-mute); }
+    .btn-amber   { background: #78350f; color: #fde68a; border: 1px solid #92400e; }
+    .btn-amber:not(:disabled):hover { background: #92400e; }
+    .btn-sm { padding: 5px 10px; font-size: 11px; }
+    .btn-xs { padding: 3px 7px; font-size: 10px; }
+    .btn-full { width: 100%; }
+
+    /* ─── Queue controls bar ─── */
+    .queue-controls {
+      display: flex; gap: 6px; padding: 10px 12px;
+      border-bottom: 1px solid var(--border-hi);
+      background: var(--bg2);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    /* ─── Status bar ─── */
+    .status-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border-hi);
+      font-size: 11px; color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--text-mute); flex-shrink: 0;
+    }
+    .status-dot.running { background: var(--green); animation: pulse 1.2s infinite; }
+    .status-dot.paused  { background: var(--amber); }
+    .status-dot.error   { background: var(--red); }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+
+    /* ─── Task cards ─── */
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+    .task-card {
+      background: var(--bg2);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color .15s;
+    }
+    .task-card.active    { border-color: var(--green); }
+    .task-card.paused    { border-color: var(--amber); }
+    .task-card.error     { border-color: var(--red); }
+    .task-card.completed { border-color: #1e5c35; }
+    .task-card.stopped, .task-card.cancelled { opacity: .6; }
+
+    .task-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px;
+      cursor: pointer;
+    }
+    .drag-handle {
+      color: var(--text-mute); font-size: 14px; cursor: grab; flex-shrink: 0;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .task-status-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: var(--text-mute);
+    }
+    .task-status-dot.pending   { background: var(--text-mute); }
+    .task-status-dot.running   { background: var(--green); animation: pulse 1.2s infinite; }
+    .task-status-dot.paused    { background: var(--amber); }
+    .task-status-dot.completed { background: #16a34a; }
+    .task-status-dot.stopped, .task-status-dot.cancelled { background: #4a5f50; }
+    .task-status-dot.error     { background: var(--red); }
+
+    .task-info { flex: 1; min-width: 0; }
+    .task-query {
+      font-size: 12px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .task-meta { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+    .task-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .task-progress-bar {
+      height: 2px; background: var(--bg3); margin: 0; border-radius: 0;
+    }
+    .task-progress-fill {
+      height: 100%; background: var(--green);
+      border-radius: 0; transition: width .4s ease;
+    }
+
+    .task-body {
+      padding: 10px;
+      border-top: 1px solid var(--border-hi);
+      background: var(--bg3);
+    }
+    .task-body-label {
+      font-size: 10px; font-weight: 700; color: var(--text-mute);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;
+    }
+    .task-body-value {
+      font-size: 11px; color: var(--text-dim);
+    }
+    .task-edit-form { display: flex; flex-direction: column; gap: 8px; }
+    .task-edit-form .form-row { margin: 0; }
+
+    /* ─── Empty state ─── */
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--text-mute);
+    }
+    .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+    .empty-state .title { font-size: 13px; font-weight: 700; color: var(--text-dim); margin-bottom: 6px; }
+    .empty-state .sub { font-size: 11px; line-height: 1.6; color: var(--text-mute); }
+
+    /* ─── Records tab ─── */
+    .search-bar {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-hi);
+      background: var(--bg2);
+      flex-shrink: 0;
+    }
+
+    .filter-pills {
+      display: flex; gap: 6px; padding: 8px 12px;
+      border-bottom: 1px solid var(--border-hi);
+      overflow-x: auto; flex-shrink: 0;
+    }
+    .filter-pills::-webkit-scrollbar { display: none; }
+    .pill {
+      white-space: nowrap; font-size: 10px; font-weight: 700;
+      padding: 4px 10px; border-radius: 20px;
+      border: 1px solid var(--border-hi);
+      background: var(--bg3); color: var(--text-dim);
+      cursor: pointer; user-select: none;
+      transition: all .15s;
+      letter-spacing: 0.3px;
+    }
+    .pill:hover { border-color: var(--green-dim); color: var(--text); }
+    .pill.active { background: var(--green); color: #000; border-color: var(--green); }
+
+    .records-list { display: flex; flex-direction: column; gap: 6px; }
+    .record-card {
+      background: var(--bg2);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+    .record-card:hover { border-color: var(--green-dim); }
+    .record-name { font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--text); }
+    .record-details { font-size: 11px; color: var(--text-dim); display: flex; flex-direction: column; gap: 3px; }
+    .record-row { display: flex; align-items: flex-start; gap: 6px; }
+    .record-icon { color: var(--green); flex-shrink: 0; margin-top: 1px; }
+    .record-badge {
+      display: inline-flex; align-items: center;
+      font-size: 9px; padding: 2px 6px; border-radius: 20px;
+      margin-top: 5px; margin-right: 4px;
+      font-weight: 800; letter-spacing: 0.3px;
+    }
+    .badge-hot   { background: #1a0505; color: #f87171; border: 1px solid #7f1d1d; }
+    .badge-ads   { background: #1a1200; color: #fbbf24; border: 1px solid #78350f; }
+    .badge-cms   { background: #0a1a2e; color: #93c5fd; border: 1px solid #1e3a5f; }
+    .badge-score { background: #0d1f0d; color: #86efac; border: 1px solid #14532d; }
+
+    .record-actions { display: flex; gap: 4px; margin-top: 7px; }
+
+    /* ─── Stats strip ─── */
+    .stats-strip {
+      display: flex; gap: 0;
+      border-bottom: 1px solid var(--border-hi);
+      flex-shrink: 0;
+    }
+    .stat-cell {
+      flex: 1; text-align: center; padding: 9px 4px;
+      border-right: 1px solid var(--border-hi);
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-val { font-size: 17px; font-weight: 800; color: var(--green); }
+    .stat-lbl { font-size: 9px; color: var(--text-mute); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+
+    /* ─── Export ─── */
+    .export-section {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border-hi);
+      background: var(--bg2);
+      flex-shrink: 0;
+      display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    }
+    .export-msg { font-size: 11px; color: var(--green); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+
+    /* ─── Detect banner ─── */
+    .detect-banner {
+      padding: 7px 12px;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; gap: 6px;
+      flex-shrink: 0;
+    }
+    .detect-banner.detected { background: #0a2818; color: #4ade80; border-bottom: 1px solid var(--green-dim); }
+    .detect-banner.waiting  { background: #1a1200; color: var(--amber); border-bottom: 1px solid #78350f; }
+
+    /* ─── Drag over highlight ─── */
+    .task-card.drag-over { border-color: var(--blue); background: #080f1a; }
+    .task-card[draggable="true"] { cursor: move; }
+
+    /* ─── Misc ─── */
+    .divider { height: 1px; background: var(--border-hi); margin: 8px 0; }
+    .tag-badge {
+      display: inline-block;
+      font-size: 9px; padding: 1px 6px; border-radius: 20px;
+      background: var(--bg3); border: 1px solid var(--border-hi);
+      color: var(--text-mute); margin-left: 4px; font-weight: 600;
+    }
+    .quota-bar { height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    .quota-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width .3s; }
+
+    /* ─── Section separator label ─── */
+    .section-label {
+      font-size: 10px; font-weight: 800; color: var(--text-mute);
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 0 0 6px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">L</div>
+  <span class="header-title">LeadHarvest AI</span>
+  <span class="header-badge" id="quotaBadge">0/500</span>
+  <button class="btn-icon" id="btnOptions" title="Options">⚙</button>
+</div>
+
+<!-- Detect banner -->
+<div class="detect-banner waiting" id="detectBanner">
+  <span>⏳</span>
+  <span id="detectText">Open Google Maps and search for businesses</span>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" data-tab="queue">Queue</div>
+  <div class="tab" data-tab="records">Records</div>
+</div>
+
+<div class="panels">
+
+  <!-- ═══════════════════════════════ QUEUE PANEL ═══════════════════════════════ -->
+  <div class="panel active" id="panel-queue">
+
+    <!-- Add task form -->
+    <div class="scroll-area" style="flex:0 0 auto; max-height:270px; border-bottom:1px solid var(--border-hi);">
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-title">➕ New Task</div>
+
+        <div class="form-row">
+          <label>Search Query</label>
+          <input type="text" id="addQuery" placeholder="e.g. dentists in Chicago" />
+        </div>
+
+        <div class="form-row-inline">
+          <div>
+            <label>Lead Limit</label>
+            <input type="number" id="addLimit" value="25" min="1" max="500" />
+          </div>
+          <div>
+            <label>Tag (optional)</label>
+            <input type="text" id="addTag" placeholder="e.g. batch-1" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label style="margin-bottom:7px;">Extract Fields <span style="font-weight:400;color:var(--text-mute);font-size:10px;">(click to toggle)</span></label>
+          <div class="fields-grid" id="addFieldsGrid">
+            <!-- Built by JS to keep a single source of truth -->
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" id="btnAddTask">＋ Add to Queue</button>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar" id="queueStatusBar">
+      <div class="status-dot" id="queueStatusDot"></div>
+      <span id="queueStatusText">Queue idle</span>
+      <div style="flex:1"></div>
+      <span id="queueCountText" style="font-size:10px;color:var(--text-mute);"></span>
+    </div>
+
+    <!-- Queue controls -->
+    <div class="queue-controls">
+      <button class="btn btn-primary btn-sm" id="btnQueueStart">▶ Start</button>
+      <button class="btn btn-amber btn-sm" id="btnQueuePause" disabled>⏸ Pause</button>
+      <button class="btn btn-ghost btn-sm" id="btnQueueResume" disabled>▶ Resume</button>
+      <button class="btn btn-danger btn-sm" id="btnQueueStop" disabled>⏹ Stop All</button>
+      <button class="btn btn-ghost btn-sm" id="btnStopTask" disabled title="Skip current task, continue queue">⏭ Skip</button>
+      <button class="btn btn-ghost btn-sm" id="btnClearDone">✕ Clear Done</button>
+    </div>
+
+    <!-- Task list -->
+    <div class="scroll-area">
+      <div class="task-list" id="taskList">
+        <div class="empty-state">
+          <div class="icon">📋</div>
+          <div class="title">Queue is empty</div>
+          <div class="sub">Fill in the form above and add your first task.<br>Each task is one search query.</div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /panel-queue -->
+
+  <!-- ═══════════════════════════════ RECORDS PANEL ═══════════════════════════════ -->
+  <div class="panel" id="panel-records">
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+      <div class="stat-cell">
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-lbl">Total</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="statEmail">0</div>
+        <div class="stat-lbl">w/ Email</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="statNoSite">0</div>
+        <div class="stat-lbl">No Site</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val" id="statAds">0</div>
+        <div class="stat-lbl">Ads</div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" id="recordSearch" placeholder="Search name, email, phone, address…" />
+    </div>
+
+    <!-- Filter pills -->
+    <div class="filter-pills">
+      <div class="pill active" data-filter="all">All</div>
+      <div class="pill" data-filter="hasEmail">Has Email</div>
+      <div class="pill" data-filter="noWebsite">No Website</div>
+      <div class="pill" data-filter="ads">Google Ads</div>
+      <div class="pill" data-filter="hot">Hot Leads</div>
+    </div>
+
+    <!-- Task filter -->
+    <div style="padding:6px 12px; border-bottom:1px solid var(--border-hi); flex-shrink:0; background:var(--bg2);">
+      <select id="taskFilter" style="font-size:11px; padding:4px 8px;">
+        <option value="">All tasks</option>
+      </select>
+    </div>
+
+    <!-- Records list -->
+    <div class="scroll-area">
+      <div class="records-list" id="recordsList"></div>
+    </div>
+
+    <!-- Export bar -->
+    <div class="export-section">
+      <span class="export-msg" id="exportMsg"></span>
+      <button class="btn btn-ghost btn-sm" id="btnExportFiltered">Export Filtered</button>
+      <button class="btn btn-primary btn-sm" id="btnExportAll">Export All</button>
+    </div>
+  </div><!-- /panel-records -->
+
+</div><!-- /panels -->
+
+<script src="sidepanel.js"></script>
+</body>
+</html>

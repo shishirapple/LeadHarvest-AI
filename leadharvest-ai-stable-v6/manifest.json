@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "LeadHarvest AI",
+  "version": "6.0.0",
+  "description": "Intelligent lead extractor for Google Maps — queue-based batch scraping with advanced email extraction, side panel UI, email discovery, CMS fingerprinting, Google Ads detection, and local-first storage. No external accounts required.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs",
+    "activeTab",
+    "downloads",
+    "alarms",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://www.google.com/maps/*",
+    "https://maps.google.com/*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.google.com/maps/*",
+        "https://maps.google.com/*"
+      ],
+      "js": ["src/lib/storage.js", "src/content/maps-content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "LeadHarvest AI",
+    "default_icon": {
+      "128": "icons/icon128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/sidepanel.html"
+  },
+  "options_page": "src/options/options.html",
+  "icons": {
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
